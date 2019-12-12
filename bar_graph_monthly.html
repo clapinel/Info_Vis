@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8' />
+    <title> Attempt with v4 for all year ilter by month and comm </title>
+    <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+    <style>
+        body {
+            font-family: "Arial", sans-serif;
+        }
+            
+        .axis {
+            font-size: 13px;
+        }
+        
+        .axis path,
+        .axis line {
+            fill: none;
+            display: none;
+        }
+        
+        .label {
+            font-size: 13px;
+        }
+    </style>
+
+</head>
+
+<body>
+<!-- Initialize a select button -->
+<select id="selectButton"></select>
+<!-- Initialize a select button -->
+<select id="selectMonth"></select>
+<div>
+<svg class="chart">
+</svg>
+</div>
+
+<script>
+
+// ressources for v4 
+// https://www.d3-graph-gallery.com/graph/line_select.html
+// https://bl.ocks.org/syncopika/f1c9036b0deb058454f825238a95b6be
+// https://bl.ocks.org/caravinden/eb0e5a2b38c8815919290fa838c6b63b
+
+
+    var data = new Array();
+
+    // jan_data = new Array();
+
+    var com_nums = [];
+    for (var i = 1; i <= 77; i++) {
+        com_nums.push(i);
+    };
+
+
+    var month_nums = []
+    for (var i = 1; i <= 12; i++) {
+        month_nums.push(i);
+    };
+
+        // add the options to the button
+    d3.select("#selectButton")
+      .selectAll('myOptions')
+     	.data(com_nums)
+      .enter()
+    	.append('option')
+      .text(function (d) { return d; }) // text showed in the menu
+      .attr("value", function (d) { return d; });
+       // corresponding value returned by the button
+        // add the options to the button
+    
+    d3.select("#selectMonth")
+      .selectAll('myOptions')
+     	.data(month_nums)
+      .enter()
+    	.append('option')
+      .text(function (d) { return d; }) // text showed in the menu
+      .attr("value", function (d) { return d; });
+       // corresponding value returned by the button
+
+    console.log(com_nums);
+
+    d3.json('monthly_violence.json', function(error, rawData){
+
+        rawData.forEach(function(d){
+            data.push(d);
+        });
+
+        data.forEach(function(d){
+            d["count"]=+d["count"]
+        });
+
+
+        // call function to make the visualizaition
+        // var Q_info=data
+
+        console.log(data); 
+        // use data only from Q1 to test the dropdown for areas 
+        // jan_data =  data.filter(function(comm) {
+        //     return comm["Month"] == "1";
+        // });
+
+
+        // TO-DO create select button somewhere 
+
+
+        // console.log(jan_data); 
+        
+
+
+
+    });
+
+
+    // I think ok to create the function to update here 
+    // TO-DO check if allowed
+
+    function updating_com_from_drop(chosen_field){
+
+        // make data var for data from chosen_field
+
+        var chosen_data = data.filter(function(d) {
+            return d["Community"] == chosen_field;
+        });
+
+        x.domain( [0, d3.max(chosen_data, function(d){return d.count;})]);
+        y.domain(chosen_data.map(function(d){ return d.Primary;}));
+
+        // create width of each bar 
+        // in our case height
+        var bar_height = height / chosen_data.length;
+
+        // select bars on graph, take them out
+        // enter new selected data 
+
+        var bars = chart.selectAll(".bar")
+            .remove()
+            .exit()
+            .data(chosen_data)
+
+        bars.enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("width", function(d){return x(d.count); })
+            .attr("y", function(d){return y(d.Primary);})
+            .attr("height", y.bandwidth())
+            .attr("fill", function(d){
+                if(d.v_or_no==="1"){
+                    return "rgb(251,180,174)";
+                } else {
+                    return "rgb(179,205,227)";
+                }
+            });
+            // TO-DO add fill option based on violent or non vioelnt crimes 
+        
+        // then change the x and y axis 
+
+        chart.select('.y')
+            .call(yAxis)
+
+        chart.select('.xAxis')
+            .attr("transform", "translate(0," + height + ")")
+		    .call(xAxis);
+
+
+
+    };
+
+    function updating_month_from_drop(chosen_month){
+
+        // make data var for data from chosen_field
+
+        var chosen_data = data.filter(function(d) {
+            return d["Month"] == chosen_month;
+        });
+
+        x.domain( [0, d3.max(chosen_data, function(d){return d.count;})]);
+        y.domain(chosen_data.map(function(d){ return d.Primary;}));
+
+        // create width of each bar 
+        // in our case height
+        var bar_height = height / chosen_data.length;
+
+        // select bars on graph, take them out
+        // enter new selected data 
+
+        var bars = chart.selectAll(".bar")
+            .remove()
+            .exit()
+            .data(chosen_data)
+
+        bars.enter()
+            .append("rect")
+            .attr("class", "bar")
+            .attr("width", function(d){return x(d.count); })
+            .attr("y", function(d){return y(d.Primary);})
+            .attr("height", y.bandwidth())
+            .attr("fill", function(d){
+                if(d.v_or_no==="1"){
+                    return "rgb(251,180,174)";
+                } else {
+                    return "rgb(179,205,227)";
+                }
+            });
+            // TO-DO add fill option based on violent or non vioelnt crimes 
+
+        // then change the x and y axis 
+
+        chart.select('.y')
+            .call(yAxis)
+
+        chart.select('.xAxis')
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+
+
+    };
+
+
+
+
+
+        // init with q1_data and for the community 1
+
+        // set dimentions and margins
+
+    var margin = {top: 20, right: 20, bottom: 30, left: 40},
+        width = 960 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+        // set ranges of data
+        
+    var y = d3.scaleBand()
+      .range([height, 0])
+        .padding(0.1);
+
+    var x = d3.scaleLinear()
+      .range([0, width]);
+
+        // y will be categories
+        // x will be count 
+
+        // TO-DO create handlers for axis? 
+
+    var chart = d3.select(".chart")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", 
+            "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+        // maxe axis and set up 
+
+    var xAxis = d3.axisBottom(x);
+    var yAxis = d3.axisLeft(y);
+
+        // our x is Linear - values
+        // our y is Band - ordinal 
+        // will need to make different changes when adding to chart 
+            
+        // add x axis
+        chart.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+        // add y axis 
+        chart.append("g")
+            .call(yAxis);
+
+        // TO-DO
+        // add axis labels
+    chart.append("text")
+        .attr("transform", "translate(-35," +  (height+margin.bottom)/2 + ") rotate(-90)")
+        .text("Primary Type of Crime");
+            
+    chart.append("text")
+	    .attr("transform", "translate(" + (width/2) + "," + (height + margin.bottom - 5) + ")")
+        .text("Count in Selected Quarter");
+            
+        // TO-DO call function update on the data we want to start with
+        // choose community 1? 
+        // update(_____); 
+        // update called when button click? or that's after initialized 
+        // maybe need to create a function for when the value in the dropdown is chaged aka selected 
+
+        // updating_com_from_drop(1);
+    // }
+
+        // d3.select("#selectButton").on("change", function(d) {
+        //     // recover the option that has been chosen
+        //     var selectedOption = d3.select(this).property("value")
+        //     // run the updateChart function with this selected option
+        //     updating_com_from_drop(selectedOption)
+        // });
+
+    updating_com_from_drop(1);
+    updating_month_from_drop(1);
+
+    // var start_data = q1_data.filter(function(comm) {
+    //         return comm["Community"] == 1;
+    //     });
+    // updating_com_from_drop(1);
+
+
+    d3.select("#selectButton").on("change", function(d) {
+            // recover the option that has been chosen
+        var selectedOption = d3.select(this).property("value")
+            // run the updateChart function with this selected option
+        updating_com_from_drop(selectedOption)
+    });
+
+
+    d3.select("#selectMonth").on("change", function(d) {
+            // recover the option that has been chosen
+        var selectedOption = d3.select(this).property("value")
+            // run the updateChart function with this selected option
+        updating_month_from_drop(selectedOption)
+    });
+
+
+
+
+        // create canvas
+
+        // make axis and add
+
+        // make axis handlers for selection 
+
+        // function to update bars
+
+            // create var bars 
+            // new data, updates, transitions etc etc 
+        
+        // handlers for dropdown value changes
+
+        // creating dropdown 
+
+        // load init data 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+
+</html>
